@@ -7,61 +7,14 @@ Connecting joints to create an unusual skeleton
 // Declare kinectron
 var kinectron = null;
 
-var allConnections = []; // whether the joints are connected
-var allowableConnections = []; // whether the joint connections CAN be toggled
-var totalJoints = 20; // exclude spineshoulder, hand tips, and thumbs
+var allConnections = [];        // whether the joints are connected
+var allowableConnections = [];  // whether the joint connections CAN be toggled
+var totalJoints = 20;       // exclude spineshoulder, hand tips, and thumbs
 
-var distThreshold = 30; // min dist to reset allowable connection
-var connectDistance = 20;
+var jointsToCompare;        // declare array for later
 
-
-// joints for comparing
-// take out wrist (6,10) and foot (15,19) for all 
-// should pass wrist to hand, and foot to ankle....
-//var jointsToCompare = [spineBaseComp, spineMidComp, neckComp, headComp, shoLeftComp, elbowLeftComp, wristLeftComp, handLeftComp, shoRightComp, elbowRightComp, wristRightComp, handRightComp, hipLeftComp, kneeLeftComp, ankleLeftComp, footLeftComp, hipRightComp, kneeRightComp, ankleRightComp, footRightComp];
-
-var jointsToCompare = [[kinectron.HEAD], [kinectron.HEAD], [kinectron.HEAD], [3], [3], [3], [3], [3,11], [3], [3], [3], [3,7], [3], [3], [3], [3], [3], [3], [3], [3]];
-
-// test everything with just the head
-var spineBaseComp = [3];
-var spineMidComp = [3];
-var neckComp = [3];
-var headComp = [3];
-var shoLeftComp = [3];
-var elbowLeftComp = [3];
-var wristLeftComp = [];
-var handLeftComp = [3];
-var shoRightComp = [3];
-var elbowRightComp = [3];
-var wristRightComp = [];
-var handRightComp = [3];
-var hipLeftComp = [3];
-var kneeLeftComp = [3];
-var ankleLeftComp = [3];
-var footLeftComp = [];
-var hipRightComp = [3];
-var kneeRightComp = [3];
-var ankleRightComp = [3];
-var footRightComp = [];
-
-
-
-
-/*var spineBaseComp = [1, 2, 3, 4, 6, 8, 10, 12, 13, 15, 16, 17, 19, 20];
-var spineMidComp = [0, 2, 3, 4, 6, 8, 10, 12, 15, 16, 19, 20];
-var neckComp = [0, 1, 3, 4, 6, 8, 10, 15, 19, 20];
-var headComp = [1, 6, 10, 15, 19, 20];
-var shoLeftComp = [1, 2, 4, 5, 6, 10, 15, 19, 20];
-var elbowLeftComp = [0, 1, 2, 5, 6, 7, 10, 15, 19, 20];
-var wristLeftComp = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
-var handLeftComp = [5, 6, 10, 15, 19];*/
-
-
-
-
-
-
-
+var distThreshold = 30;     // min dist to reset allowable connection
+var connectDistance = 25;
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
@@ -86,6 +39,38 @@ function setup() {
     kinectron = new Kinectron("172.16.230.182");
     // Connect with application over peer
     kinectron.makeConnection();
+
+
+    // JOINTS SETUP
+    // select specific joints that can be connected
+    // ignore spineshoulder, hand tips, thumbs
+    // take out wrist (6,10) and foot (15,19) for all 
+    // should really pass wrist to hand, and foot to ankle....
+    var spineBaseComp = [];
+    var spineMidComp = [];
+    var neckComp = [];
+    //var neckComp = [kinectron.ELBOWLEFT,kinectron.HANDLEFT,kinectron.ELBOWRIGHT,kinectron.HANDRIGHT,kinectron.KNEELEFT,kinectron.ANKLELEFT,kinectron.KNEERIGHT,kinectron.ANKLERIGHT];
+    var headComp = [kinectron.SHOULDERLEFT,kinectron.ELBOWLEFT,kinectron.HANDLEFT,kinectron.SHOULDERRIGHT,kinectron.ELBOWRIGHT,kinectron.HANDRIGHT,kinectron.HIPLEFT,kinectron.KNEELEFT,kinectron.ANKLELEFT,kinectron.HIPRIGHT,kinectron.KNEERIGHT,kinectron.ANKLERIGHT];
+    var shoLeftComp = [kinectron.HEAD,kinectron.HANDLEFT,kinectron.ELBOWRIGHT,kinectron.HANDRIGHT,kinectron.KNEELEFT,kinectron.ANKLELEFT,kinectron.KNEERIGHT,kinectron.ANKLERIGHT];
+    var elbowLeftComp = [kinectron.HEAD,kinectron.SHOULDERRIGHT,kinectron.ELBOWRIGHT,kinectron.HANDRIGHT,kinectron.HIPLEFT,kinectron.KNEELEFT,kinectron.ANKLELEFT,kinectron.HIPRIGHT,kinectron.KNEERIGHT,kinectron.ANKLERIGHT];
+    var wristLeftComp = [];
+    var handLeftComp = [kinectron.HEAD,kinectron.SHOULDERLEFT,kinectron.SHOULDERRIGHT,kinectron.ELBOWRIGHT,kinectron.HANDRIGHT,kinectron.HIPLEFT,kinectron.KNEELEFT,kinectron.ANKLELEFT,kinectron.HIPRIGHT,kinectron.KNEERIGHT,kinectron.ANKLERIGHT];
+    var shoRightComp = [kinectron.HEAD,kinectron.ELBOWLEFT,kinectron.HANDLEFT,kinectron.HANDRIGHT,kinectron.HIPLEFT,kinectron.KNEELEFT,kinectron.ANKLELEFT,kinectron.KNEERIGHT,kinectron.ANKLERIGHT];
+    var elbowRightComp = [kinectron.HEAD,kinectron.SHOULDERLEFT,kinectron.ELBOWLEFT,kinectron.HANDLEFT,kinectron.HIPLEFT,kinectron.KNEELEFT,kinectron.ANKLELEFT,kinectron.HIPRIGHT,kinectron.KNEERIGHT,kinectron.ANKLERIGHT];
+    var wristRightComp = [];
+    var handRightComp = [kinectron.HEAD,kinectron.SHOULDERLEFT,kinectron.ELBOWLEFT,kinectron.HANDLEFT,kinectron.SHOULDERRIGHT,kinectron.HIPLEFT,kinectron.KNEELEFT,kinectron.ANKLELEFT,kinectron.HIPRIGHT,kinectron.KNEERIGHT,kinectron.ANKLERIGHT];
+    var hipLeftComp = [kinectron.HEAD,kinectron.ELBOWLEFT,kinectron.HANDLEFT,kinectron.SHOULDERRIGHT,kinectron.ELBOWRIGHT,kinectron.HANDRIGHT,kinectron.KNEERIGHT,kinectron.ANKLERIGHT];
+    var kneeLeftComp = [kinectron.HEAD,kinectron.SHOULDERLEFT,kinectron.ELBOWLEFT,kinectron.HANDLEFT,kinectron.SHOULDERRIGHT,kinectron.ELBOWRIGHT,kinectron.HANDRIGHT,kinectron.HIPRIGHT,kinectron.KNEERIGHT,kinectron.ANKLERIGHT];
+    var ankleLeftComp = [kinectron.HEAD,kinectron.SHOULDERLEFT,kinectron.ELBOWLEFT,kinectron.HANDLEFT,kinectron.SHOULDERRIGHT,kinectron.ELBOWRIGHT,kinectron.WRISTRIGHT,kinectron.HIPRIGHT,kinectron.KNEERIGHT,kinectron.ANKLERIGHT];
+    var footLeftComp = [];
+    var hipRightComp = [kinectron.HEAD,kinectron.SHOULDERLEFT,kinectron.ELBOWLEFT,kinectron.WRISTLEFT,kinectron.ELBOWRIGHT,kinectron.HANDRIGHT,kinectron.KNEELEFT,kinectron.ANKLELEFT];
+    var kneeRightComp = [kinectron.HEAD,kinectron.SHOULDERLEFT,kinectron.ELBOWLEFT,kinectron.HANDLEFT,kinectron.SHOULDERRIGHT,kinectron.ELBOWRIGHT,kinectron.HANDRIGHT,kinectron.HIPLEFT,kinectron.KNEELEFT,kinectron.ANKLELEFT];
+    var ankleRightComp = [kinectron.HEAD,kinectron.SHOULDERLEFT,kinectron.ELBOWLEFT,kinectron.HANDLEFT,kinectron.SHOULDERRIGHT,kinectron.ELBOWRIGHT,kinectron.HANDRIGHT,kinectron.HIPLEFT,kinectron.KNEELEFT,kinectron.ANKLELEFT];
+    var footRightComp = [];
+
+    // add individual arrays to 2D for ease of looping
+    jointsToCompare = [spineBaseComp, spineMidComp, neckComp, headComp, shoLeftComp, elbowLeftComp, wristLeftComp, handLeftComp, shoRightComp, elbowRightComp, wristRightComp, handRightComp, hipLeftComp, kneeLeftComp, ankleLeftComp, footLeftComp, hipRightComp, kneeRightComp, ankleRightComp, footRightComp];
+
     // Request all tracked bodies and pass data to your callback
     kinectron.startTrackedBodies(bodyTracked);
 
@@ -105,9 +90,6 @@ function checkDistance(bodyObj, index1, index2) {
     var resultant = p5.Vector.sub(firstJoint, secondJoint);
     var dist = p5.Vector.mag(resultant);
 
-
-    // do tests with HEAD and RIGHT HAND
-    //if (index1 == 3 && index2 == 11) {
 
     if (allowableConnections[index1][index2]) {
 
@@ -131,7 +113,6 @@ function checkDistance(bodyObj, index1, index2) {
             allowableConnections[index1][index2] = true;
         }
     }
-    //}
 }
 
 
@@ -178,12 +159,13 @@ function bodyTracked(body) {
 // Move it to the center of the screen
 // Return it as a vector
 function getPos(joint) {
-    return createVector((joint.cameraX * width / 2) + width / 2, (-joint.cameraY * width / 2) + height / 2);
+    return createVector((joint.cameraX * width / 3) + width / 2, (-joint.cameraY * width / 3) + height / 2);
 }
 
 // Draw points of all joints
 function drawJoint(joint) {
 
+    // MAKE SURE TO NOT DRAW THE JOINTS WE'RE NOT USING!
     //console.log("JOINT OBJECT", joint);
     var pos = getPos(joint);
 
